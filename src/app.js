@@ -8,6 +8,6 @@ const App = () => (
         hello world
     </div>
 );
-
+export default App;
 // render(<Provider store={store}><App /></Provider>, document.getElementById('app'));
-render(<Provider store={store}><App /></Provider>, document.getElementById('app'));
+//render(<Provider store={store}><App /></Provider>, document.getElementById('app'));
