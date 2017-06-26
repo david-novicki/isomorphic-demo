@@ -2,9 +2,10 @@ const express = require('express');
 const http = require('http');
 const compression = require('compression');
 const fs = require('fs');
-const React = require('react-dom/server');
-const App = require('./src/app');
-//console.log(React, App);
+const React = require('react');
+const ReactDOM = require('react-dom/server');
+const App = require('./src/app').default;
+console.log(React, App);
 const app = express();
 const path = require('path'),
     colors = require('colors');
@@ -18,9 +19,9 @@ app.use(express.static(path.join(__dirname, 'dist')));
 //app.use(express.static(path.join(__dirname, 'src')));
 
 app.get('*', (req, res) => {
-    let markup = React.renderToStaticMarkup(App);
+    let markup = ReactDOM.renderToString(<App />);
     console.log(markup);
-    //res.sendFile(path.join(__dirname, './index-main.html'));
+    res.send(markup);
 });
 
 
