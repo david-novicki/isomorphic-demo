@@ -20,23 +20,23 @@ const port = process.env.PORT || 8080;
 
 app.use(compression());
 // serve our static stuff like index.css
-app.use(express.static(path.join(__dirname, 'dist')));
+//app.use(express.static(path.join(__dirname, 'dist')));
+app.use('/dist', express.static('./dist'));
 // serve our static stuff like index.css
 //app.use(express.static(path.join(__dirname, 'src')));
 
-app.get('/', (req, res) => {
+app.get('*', (req, res) => {
     const store = createStore(reducers, {});
     // Render the component to a string
-    const html = ReactDOM.renderToString(
+    const html = (
         <Provider store={store}>
-            <App />
+            <Router context={{}} location={req.url}>
+                <App />
+            </Router>
         </Provider>
-    )
+    );
     // Grab the initial state from our Redux store
     let preloadedState = store.getState();
-    preloadedState.user.items.push('4');
-    console.log(preloadedState);
-    // Send the rendered page back to the client
     res.send(renderFullPage(html, preloadedState))
 });
 
@@ -53,13 +53,13 @@ function renderFullPage(html, preloadedState) {
         <title>Redux Universal Example</title>
       </head>
       <body>
-        <div id="root">${html}</div>
+        <div id="root">${ReactDOM.renderToString(html)}</div>
         <script>
           // WARNING: See the following for security issues around embedding JSON in HTML:
           // http://redux.js.org/docs/recipes/ServerRendering.html#security-considerations
           window.__PRELOADED_STATE__ = ${JSON.stringify(preloadedState).replace(/</g, '\\u003c')}
         </script>
-        <script src="/static/bundle.js"></script>
+        <script src="/dist/assets/app.bundle.js"></script>
       </body>
     </html>
     `

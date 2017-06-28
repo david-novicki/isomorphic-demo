@@ -1,14 +1,24 @@
 import React, { Component } from 'react';
+import { Switch, Link, Route } from 'react-router-dom';
+
+// components
+import Navbar from '../shared/navbar.jsx';
+import Home from '../shared/home.jsx';
+import User from '../shared/user.jsx';
 
 class App extends Component {
-    static fetchData() {
-        console.log('test');
+    componentWillMount(){
+        console.log('App mounted')
     }
     render() {
         return (
-                <div>
-                    hello world
-                </div>
+            <div>
+                <Navbar />
+                <Switch>
+                    <Route exact path="/" component={Home} />
+                    <Route exact path="/u" component={User} />
+                </Switch>
+            </div>
         );
     }
 }
