@@ -1,14 +1,14 @@
 import React, { Component } from 'react';
-// import store from './redux/store';
-// import { render } from 'react-dom';
-// import { Provider } from 'react-redux';
 
 class App extends Component {
+    static fetchData() {
+        console.log('test');
+    }
     render() {
         return (
-            <div>
-                hello world
-            </div>
+                <div>
+                    hello world
+                </div>
         );
     }
 }
