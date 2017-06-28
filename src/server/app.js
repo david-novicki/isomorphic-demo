@@ -1,15 +1,23 @@
 import React, { Component } from 'react';
-import * as actions from '../client/redux/actions/user-actions'
+import { Switch, Link, Route } from 'react-router-dom';
+import Navbar from '../shared/navbar.jsx';
+
+// components
+import routes from '../shared/routes';
+
 
 class App extends Component {
-    static fetchData({store}) {
-        return store.dispatch(actions.getUser());
-    }
     render() {
+        let router = routes.map(({ path, component, exact }, i) =>
+            <Route key={Math.random() + 'ROUTE_'} exact={exact} path={path} component={component} />
+        );
         return (
-                <div>
-                    hello world
-                </div>
+            <div>
+                <Navbar />
+                <Switch>
+                    {router}
+                </Switch>
+            </div>
         );
     }
 }

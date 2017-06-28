@@ -16,23 +16,35 @@ import { createStore, applyMiddleware, compose } from 'redux';
 import reducers from '../client/redux/reducers/combine';
 import { StaticRouter as Router, matchPath } from 'react-router';
 import thunk from '../client/redux/middleware/thunk';
+import routes from '../shared/routes';
 
 const port = process.env.PORT || 8080;
 
 app.use(compression());
 // serve our static stuff like index.css
-app.use(express.static(path.join(__dirname, 'dist')));
+//app.use(express.static(path.join(__dirname, 'dist')));
+app.use('/dist', express.static('./dist'));
 // serve our static stuff like index.css
 //app.use(express.static(path.join(__dirname, 'src')));
 
-app.get('/', (req, res) => {
-    const store = createStore(reducers, {}, applyMiddleware(thunk));
 
-    App.fetchData({ store }).then(() => {
+app.get('*', (req, res) => {
+    const store = createStore(reducers, {}, applyMiddleware(thunk));
+    const { path, component } = routes.find(
+        ({ path, exact }) => matchPath(req.url,
+            {
+                path,
+                exact,
+                strict: false
+            }
+        ));
+    component.fetchData({ store }).then(() => {
         let preloadedState = store.getState();
         const html = ReactDOM.renderToString(
             <Provider store={store}>
-                <App />
+                <Router context={{}} location={req.url}>
+                    <App />
+                </Router>
             </Provider>
         )
         res.send(renderFullPage(html, preloadedState))
@@ -58,7 +70,7 @@ function renderFullPage(html, preloadedState) {
           // http://redux.js.org/docs/recipes/ServerRendering.html#security-considerations
           window.__PRELOADED_STATE__ = ${JSON.stringify(preloadedState).replace(/</g, '\\u003c')}
         </script>
-        <script src="/static/bundle.js"></script>
+        <script src="/dist/assets/app.bundle.js"></script>
       </body>
     </html>
     `

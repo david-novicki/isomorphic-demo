@@ -9,7 +9,7 @@
     "build:client": "webpack --progress --colors --config webpack.config.js",
     "build:server": "webpack --progress --colors --config webpack.config.server.js",
     "dev": "webpack-dev-server --open --progress --colors",
-    "start": "webpack --progress --colors --config webpack.config.server.js && node dist/server.js"
+    "start": "webpack --progress --colors --config webpack.config.js && webpack --progress --colors --config webpack.config.server.js && node dist/server.js"
   },
   "author": "",
   "license": "ISC",
