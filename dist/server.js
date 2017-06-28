@@ -557,10 +557,7 @@ app.get('*', function (req, res) {
     }),
         path = _routes$find.path,
         component = _routes$find.component;
-    //console.log('component', path, component);
 
-
-    console.log('component.fetchData', component.fetchData);
     component.fetchData({ store: store }).then(function () {
         var preloadedState = store.getState();
         var html = _server2.default.renderToString(_react2.default.createElement(
