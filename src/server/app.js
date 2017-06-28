@@ -1,22 +1,21 @@
 import React, { Component } from 'react';
 import { Switch, Link, Route } from 'react-router-dom';
+import Navbar from '../shared/navbar.jsx';
 
 // components
-import Navbar from '../shared/navbar.jsx';
-import Home from '../shared/home.jsx';
-import User from '../shared/user.jsx';
+import routes from '../shared/routes';
+
 
 class App extends Component {
-    componentWillMount(){
-        console.log('App mounted')
-    }
     render() {
+        let router = routes.map(({ path, component, exact }, i) =>
+            <Route key={Math.random() + 'ROUTE_'} exact={exact} path={path} component={component} />
+        );
         return (
             <div>
                 <Navbar />
                 <Switch>
-                    <Route exact path="/" component={Home} />
-                    <Route exact path="/u" component={User} />
+                    {router}
                 </Switch>
             </div>
         );

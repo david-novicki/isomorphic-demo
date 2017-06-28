@@ -1,8 +1,10 @@
 import React, { Component } from 'react';
+import * as actions from '../client/redux/actions/user-actions'
+
 
 class User extends Component {
-    static fetchData() {
-        console.log('test');
+    static fetchData({ store }) {
+        return store.dispatch(actions.getUser());
     }
     render() {
         return (

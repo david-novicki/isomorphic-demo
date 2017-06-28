@@ -5,16 +5,18 @@ import fs from 'fs';
 import React from 'react';
 import ReactDOM from 'react-dom/server';
 import App from '../server/app';
-console.log(App.fetchData);
+//console.log(App.fetchData);
 const app = express();
 import path from 'path';
 import colors from 'colors';
 //import store from './src/redux/store';
 import { render } from 'react-dom';
 import { Provider } from 'react-redux';
-import { createStore } from 'redux';
+import { createStore, applyMiddleware, compose } from 'redux';
 import reducers from '../client/redux/reducers/combine';
 import { StaticRouter as Router, matchPath } from 'react-router';
+import thunk from '../client/redux/middleware/thunk';
+import routes from '../shared/routes';
 
 const port = process.env.PORT || 8080;
 
@@ -25,19 +27,28 @@ app.use('/dist', express.static('./dist'));
 // serve our static stuff like index.css
 //app.use(express.static(path.join(__dirname, 'src')));
 
+
 app.get('*', (req, res) => {
-    const store = createStore(reducers, {});
-    // Render the component to a string
-    const html = (
-        <Provider store={store}>
-            <Router context={{}} location={req.url}>
-                <App />
-            </Router>
-        </Provider>
-    );
-    // Grab the initial state from our Redux store
-    let preloadedState = store.getState();
-    res.send(renderFullPage(html, preloadedState))
+    const store = createStore(reducers, {}, applyMiddleware(thunk));
+    const { path, component } = routes.find(
+        ({ path, exact }) => matchPath(req.url,
+            {
+                path,
+                exact,
+                strict: false
+            }
+        ));
+    component.fetchData({ store }).then(() => {
+        let preloadedState = store.getState();
+        const html = ReactDOM.renderToString(
+            <Provider store={store}>
+                <Router context={{}} location={req.url}>
+                    <App />
+                </Router>
+            </Provider>
+        )
+        res.send(renderFullPage(html, preloadedState))
+    })
 });
 
 
@@ -53,7 +64,7 @@ function renderFullPage(html, preloadedState) {
         <title>Redux Universal Example</title>
       </head>
       <body>
-        <div id="root">${ReactDOM.renderToString(html)}</div>
+        <div id="root">${html}</div>
         <script>
           // WARNING: See the following for security issues around embedding JSON in HTML:
           // http://redux.js.org/docs/recipes/ServerRendering.html#security-considerations
