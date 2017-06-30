@@ -13283,9 +13283,9 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
-var preloadedState = window.__PRELOADED_STATE__;
+var preloadedState = window.__PRELOADED_STATE__ || {};
 console.log(preloadedState);
-var composeEnhancers = _redux.compose;
+var composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || _redux.compose;
 var store = (0, _redux.createStore)(_combine2.default, preloadedState, composeEnhancers(_redux.applyMiddleware.apply(undefined, _toConsumableArray(_middleware2.default))));
 
 exports.default = store;
