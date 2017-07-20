@@ -1,67 +1,71 @@
 import express from 'express';
-import http from 'http';
-import compression from 'compression';
-import fs from 'fs';
 import React from 'react';
 import ReactDOM from 'react-dom/server';
-import App from '../server/app';
-//console.log(App.fetchData);
+import helmet from 'react-helmet';
+import App from '../shared/app/app.jsx';
 const app = express();
-import path from 'path';
-import colors from 'colors';
-//import store from './src/redux/store';
 import { render } from 'react-dom';
 import { Provider } from 'react-redux';
-import { createStore, applyMiddleware, compose } from 'redux';
-import reducers from '../client/redux/reducers/combine';
+import { createStore, applyMiddleware } from 'redux';
+import reducers from '../shared/app/redux/reducers/combine';
 import { StaticRouter as Router, matchPath } from 'react-router';
-import thunk from '../client/redux/middleware/thunk';
-import routes from '../shared/routes';
+import thunk from '../shared/app/redux/middleware/thunk';
+import routeBank from '../shared/routes/routes';
 
-const port = process.env.PORT || 8080;
-
-app.use(compression());
-// serve our static stuff like index.css
-//app.use(express.static(path.join(__dirname, 'dist')));
 app.use('/dist', express.static('./dist'));
-// serve our static stuff like index.css
-//app.use(express.static(path.join(__dirname, 'src')));
-
 
 app.get('*', (req, res) => {
     const store = createStore(reducers, {}, applyMiddleware(thunk));
-    const { path, component } = routes.find(
-        ({ path, exact }) => matchPath(req.url,
-            {
-                path,
-                exact,
-                strict: false
-            }
-        ));
-    component.fetchData({ store }).then(() => {
+    let foundPath = null;
+    let { path, component } = routeBank.routes.find(
+        ({ path, exact }) => {
+            foundPath = matchPath(req.url,
+                {
+                    path,
+                    exact,
+                    strict: false
+                }
+            )
+            return foundPath;
+        }) || {};
+    if (!component)
+        component = {};
+    if (!component.fetchData)
+        component.fetchData = () => new Promise((resolve, reject) => resolve());
+    component.fetchData({ store, params: (foundPath ? foundPath.params : {}) }).then(() => {
         let preloadedState = store.getState();
+        let context = {};
         const html = ReactDOM.renderToString(
             <Provider store={store}>
-                <Router context={{}} location={req.url}>
+                <Router context={context} location={req.url}>
                     <App />
                 </Router>
             </Provider>
         )
-        res.send(renderFullPage(html, preloadedState))
-    })
+        const helmetData = helmet.renderStatic();
+        if (context.url)
+            res.redirect(context.status, 'http://' + req.headers.host + context.url);
+        else if (foundPath && foundPath.path == '/404')
+            res.status(404).send(renderFullPage(html, preloadedState, helmetData))
+        else
+            res.send(renderFullPage(html, preloadedState, helmetData))
+    });
 });
 
-
+const port = process.env.PORT || 9000;
 app.listen(port, function () {
     console.log('app running on localhost:' + port);
 });
 
-function renderFullPage(html, preloadedState) {
+function renderFullPage(html, preloadedState, helmet) {
     return `
     <!doctype html>
     <html>
       <head>
-        <title>Redux Universal Example</title>
+        <link rel="icon" href="/dist/favicon.ico" type="image/ico" />
+        ${helmet.title.toString()}
+        ${helmet.meta.toString()}
+        ${helmet.link.toString()}
       </head>
       <body>
         <div id="root">${html}</div>

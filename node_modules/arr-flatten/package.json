@@ -1,9 +1,13 @@
 {
   "name": "arr-flatten",
   "description": "Recursively flatten an array or arrays.",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "homepage": "https://github.com/jonschlinkert/arr-flatten",
   "author": "Jon Schlinkert (https://github.com/jonschlinkert)",
+  "contributors": [
+    "Jon Schlinkert (http://twitter.com/jonschlinkert)",
+    "Luke Edwards (https://lukeed.com)"
+  ],
   "repository": "jonschlinkert/arr-flatten",
   "bugs": {
     "url": "https://github.com/jonschlinkert/arr-flatten/issues"
@@ -59,10 +63,10 @@
     ],
     "related": {
       "list": [
+        "arr-filter",
         "arr-union",
-        "array-unique",
         "array-each",
-        "arr-filter"
+        "array-unique"
       ]
     },
     "lint": {
