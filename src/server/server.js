@@ -15,8 +15,10 @@ import routeBank from '../shared/routes/routes';
 app.use('/dist', express.static('./dist'));
 
 app.get('*', (req, res) => {
+	//create new redux store on each request
     const store = createStore(reducers, {}, applyMiddleware(thunk));
-    let foundPath = null;
+	let foundPath = null;
+	// match request url to our React Router paths and grab component
     let { path, component } = routeBank.routes.find(
         ({ path, exact }) => {
             foundPath = matchPath(req.url,
@@ -27,13 +29,18 @@ app.get('*', (req, res) => {
                 }
             )
             return foundPath;
-        }) || {};
+		}) || {};
+	// safety check for valid component, if no component we initialize an empty shell.
     if (!component)
-        component = {};
+		component = {};
+	// safety check for fetchData function, if no function we give it an empty promise
     if (!component.fetchData)
-        component.fetchData = () => new Promise((resolve, reject) => resolve());
+		component.fetchData = () => new Promise((resolve, reject) => resolve());
+	// meat and bones of our isomorphic application: grabbing async data
     component.fetchData({ store, params: (foundPath ? foundPath.params : {}) }).then(() => {
-        let preloadedState = store.getState();
+		//get store state (js object of entire store)
+		let preloadedState = store.getState();
+		//context is used by react router, empty by default
         let context = {};
         const html = ReactDOM.renderToString(
             <Provider store={store}>
@@ -41,13 +48,18 @@ app.get('*', (req, res) => {
                     <App />
                 </Router>
             </Provider>
-        )
-        const helmetData = helmet.renderStatic();
-        if (context.url)
+		)
+		//render helmet data aka meta data in <head></head>
+		const helmetData = helmet.renderStatic();
+		//check context for url, if url exists then react router has ran into a redirect
+		if (context.url)
+			//process redirect through express by redirecting
             res.redirect(context.status, 'http://' + req.headers.host + context.url);
-        else if (foundPath && foundPath.path == '/404')
+		else if (foundPath && foundPath.path == '/404')
+			//if 404 then send our custom 404 page with initial state and meta data
             res.status(404).send(renderFullPage(html, preloadedState, helmetData))
-        else
+		else
+			//else send down page with initial state and meta data
             res.send(renderFullPage(html, preloadedState, helmetData))
     });
 });
