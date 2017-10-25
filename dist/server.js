@@ -439,59 +439,63 @@ var app = (0, _express2.default)();
 app.use('/dist', _express2.default.static('./dist'));
 
 app.get('*', async function (req, res) {
-	//create new redux store on each request
-	var store = (0, _redux.createStore)(_combine2.default, {}, (0, _redux.applyMiddleware)(_thunk2.default));
-	var foundPath = null;
-	// match request url to our React Router paths and grab component
+	try {
+		//create new redux store on each request
+		var store = (0, _redux.createStore)(_combine2.default, {}, (0, _redux.applyMiddleware)(_thunk2.default));
+		var foundPath = null;
+		// match request url to our React Router paths and grab component
 
-	var _ref = _routes2.default.routes.find(function (_ref2) {
-		var path = _ref2.path,
-		    exact = _ref2.exact;
+		var _ref = _routes2.default.routes.find(function (_ref2) {
+			var path = _ref2.path,
+			    exact = _ref2.exact;
 
-		foundPath = (0, _reactRouter.matchPath)(req.url, {
-			path: path,
-			exact: exact,
-			strict: false
-		});
-		return foundPath;
-	}) || {},
-	    path = _ref.path,
-	    component = _ref.component;
-	// safety check for valid component, if no component we initialize an empty shell.
+			foundPath = (0, _reactRouter.matchPath)(req.url, {
+				path: path,
+				exact: exact,
+				strict: false
+			});
+			return foundPath;
+		}) || {},
+		    path = _ref.path,
+		    component = _ref.component;
+		// safety check for valid component, if no component we initialize an empty shell.
 
 
-	if (!component) component = {};
-	// safety check for fetchData function, if no function we give it an empty promise
-	if (!component.fetchData) component.fetchData = function () {
-		return new Promise(function (resolve) {
-			return resolve();
-		});
-	};
-	// meat and bones of our isomorphic application: grabbing async data
-	await component.fetchData({ store: store, params: foundPath ? foundPath.params : {} });
-	//get store state (js object of entire store)
-	var preloadedState = store.getState();
-	//context is used by react router, empty by default
-	var context = {};
-	var html = _server2.default.renderToString(_react2.default.createElement(
-		_reactRedux.Provider,
-		{ store: store },
-		_react2.default.createElement(
-			_reactRouter.StaticRouter,
-			{ context: context, location: req.url },
-			_react2.default.createElement(_app2.default, null)
-		)
-	));
-	//render helmet data aka meta data in <head></head>
-	var helmetData = _reactHelmet2.default.renderStatic();
-	//check context for url, if url exists then react router has ran into a redirect
-	if (context.url)
-		//process redirect through express by redirecting
-		res.redirect(context.status, 'http://' + req.headers.host + context.url);else if (foundPath && foundPath.path == '/404')
-		//if 404 then send our custom 404 page with initial state and meta data
-		res.status(404).send(renderFullPage(html, preloadedState, helmetData));else
-		//else send down page with initial state and meta data
-		res.send(renderFullPage(html, preloadedState, helmetData));
+		if (!component) component = {};
+		// safety check for fetchData function, if no function we give it an empty promise
+		if (!component.fetchData) component.fetchData = function () {
+			return new Promise(function (resolve) {
+				return resolve();
+			});
+		};
+		// meat and bones of our isomorphic application: grabbing async data
+		await component.fetchData({ store: store, params: foundPath ? foundPath.params : {} });
+		//get store state (js object of entire store)
+		var preloadedState = store.getState();
+		//context is used by react router, empty by default
+		var context = {};
+		var html = _server2.default.renderToString(_react2.default.createElement(
+			_reactRedux.Provider,
+			{ store: store },
+			_react2.default.createElement(
+				_reactRouter.StaticRouter,
+				{ context: context, location: req.url },
+				_react2.default.createElement(_app2.default, null)
+			)
+		));
+		//render helmet data aka meta data in <head></head>
+		var helmetData = _reactHelmet2.default.renderStatic();
+		//check context for url, if url exists then react router has ran into a redirect
+		if (context.url)
+			//process redirect through express by redirecting
+			res.redirect(context.status, 'http://' + req.headers.host + context.url);else if (foundPath && foundPath.path == '/404')
+			//if 404 then send our custom 404 page with initial state and meta data
+			res.status(404).send(renderFullPage(html, preloadedState, helmetData));else
+			//else send down page with initial state and meta data
+			res.send(renderFullPage(html, preloadedState, helmetData));
+	} catch (error) {
+		res.status(400).send(renderFullPage('An error occured.', {}, {}));
+	}
 });
 
 var port = process.env.PORT || 9000;
